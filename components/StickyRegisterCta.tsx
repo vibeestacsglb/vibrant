@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getRegistrationUrl } from "@/config/siteConfig";
+
 
 export default function StickyRegisterCta() {
   const [show, setShow] = useState(false);
-  const registrationUrl = getRegistrationUrl();
+  const [registrationUrl, setRegistrationUrl] = useState("");
+
+  useEffect(() => { fetch("/api/public/settings").then((r) => r.ok ? r.json() : null).then((d) => setRegistrationUrl(d?.registrationUrl || "")).catch(() => undefined); }, []);
 
   useEffect(() => {
     function onScroll() {

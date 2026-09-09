@@ -1,10 +1,50 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { sponsors, sponsorTierOrder } from "@/data/sponsors";
+import { Sponsor } from "@/lib/types";
+const sponsorTierOrder = [
+  "Title Sponsor",
+  "Powered By",
+  "Co-Sponsors",
+  "Partners",
+];
 
 export default function Sponsors() {
+  
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    fetch("/api/public/sponsors", {
+      cache: "no-store",
+    }).then((response) => response.ok ? response.json() : Promise.reject(new Error("Unable to load sponsors.")))
+      .then((data) => {
+        if (isCurrent) {
+          setSponsors(data);
+          setError(null);
+        }
+      })
+      .catch((fetchError: unknown) => {
+        if (isCurrent) {
+          setError(fetchError instanceof Error ? fetchError.message : "Unable to load sponsors.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
   const hasSponsors = sponsors.length > 0;
 
   return (
@@ -26,7 +66,11 @@ export default function Sponsors() {
           </h2>
         </motion.div>
 
-        {hasSponsors ? (
+        {isLoading ? (
+          <p className="py-12 text-center micro-label">Loading sponsors...</p>
+        ) : error ? (
+          <p className="py-12 text-center text-red-700">Unable to load sponsors: {error}</p>
+        ) : hasSponsors ? (
           sponsorTierOrder.map((tier) => {
             const tierSponsors = sponsors.filter((s) => s.tier === tier);
             if (tierSponsors.length === 0) return null;

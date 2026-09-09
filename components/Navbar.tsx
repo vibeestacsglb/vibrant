@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { siteConfig, getRegistrationUrl } from "@/config/siteConfig";
+import { siteConfig } from "@/config/siteConfig";
 
 const NAV_ITEMS = [
   { label: "Home", hash: "hero" },
@@ -20,10 +20,15 @@ const NAV_ITEMS = [
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isAdminRoute = pathname.startsWith("/admin");
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("hero");
   const [menuOpen, setMenuOpen] = useState(false);
-  const registrationUrl = getRegistrationUrl();
+  const [registrationUrl, setRegistrationUrl] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/public/settings").then((r) => r.ok ? r.json() : null).then((d) => setRegistrationUrl(d?.registrationUrl || "")).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     function onScroll() {
@@ -50,6 +55,8 @@ export default function Navbar() {
   function hrefFor(hash: string) {
     return isHome ? `#${hash}` : `/#${hash}`;
   }
+
+  if (isAdminRoute) return null;
 
   return (
     <>

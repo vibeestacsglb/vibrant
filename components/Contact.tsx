@@ -41,7 +41,7 @@ export default function Contact() {
             Reach Out
           </p>
           <h2 className="text-4xl sm:text-5xl md:text-6xl">
-            LET&apos;S <span className="accent-rule">CONNECT.</span>
+            LET'S <span className="accent-rule">CONNECT.</span>
           </h2>
         </motion.div>
 

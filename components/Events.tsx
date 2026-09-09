@@ -1,18 +1,46 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import EventToggle from "@/components/EventToggle";
 import EventCard from "@/components/EventCard";
 import EventSheet from "@/components/EventSheet";
-import { events } from "@/data/events";
 import { EventCategory, FestEvent } from "@/lib/types";
 
 export default function Events() {
   const [mode, setMode] = useState<EventCategory>("creative");
   const [selected, setSelected] = useState<FestEvent | null>(null);
+  const [events, setEvents] = useState<FestEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = useMemo(() => events.filter((e) => e.category === mode), [mode]);
+  useEffect(() => {
+    let isCurrent = true;
+
+    fetch("/api/public/events").then((response) => response.ok ? response.json() : Promise.reject(new Error("Unable to load events.")))
+      .then((data) => {
+        if (isCurrent) {
+          setEvents(data);
+          setError(null);
+        }
+      })
+      .catch((fetchError: unknown) => {
+        if (isCurrent) {
+          setError(fetchError instanceof Error ? fetchError.message : "Unable to load events.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
+  const filtered = useMemo(() => events.filter((e) => e.category === mode), [events, mode]);
 
   return (
     <section id="events" className="py-24 sm:py-28 md:py-40 relative overflow-hidden">
@@ -57,13 +85,19 @@ export default function Events() {
         </div>
 
         {/* Event grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-ink-700/12 border border-ink-700/12">
-          {filtered.map((event, i) => (
-            <div key={event.id} className={`h-full ${i === 0 ? "sm:col-span-2 lg:col-span-2" : ""}`}>
-              <EventCard event={event} onOpen={setSelected} featured={i === 0} />
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <p className="py-12 text-center micro-label">Loading events...</p>
+        ) : error ? (
+          <p className="py-12 text-center text-red-700">Unable to load events: {error}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-ink-700/12 border border-ink-700/12">
+            {filtered.map((event, i) => (
+              <div key={event.id} className={`h-full ${i === 0 ? "sm:col-span-2 lg:col-span-2" : ""}`}>
+                <EventCard event={event} onOpen={setSelected} featured={i === 0} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <EventSheet event={selected} onClose={() => setSelected(null)} />

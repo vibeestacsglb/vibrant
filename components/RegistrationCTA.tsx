@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Atmosphere from "@/components/Atmosphere";
-import { siteConfig, getRegistrationUrl } from "@/config/siteConfig";
+import { siteConfig } from "@/config/siteConfig"
 
 export default function RegistrationCTA() {
-  const registrationUrl = getRegistrationUrl();
+  const [registrationUrl, setRegistrationUrl] = useState("");
+  useEffect(() => { fetch("/api/public/settings").then((r) => r.ok ? r.json() : null).then((d) => setRegistrationUrl(d?.registrationUrl || "")).catch(() => undefined); }, []);
 
   return (
     <section id="register" className="py-24 sm:py-28 md:py-40 text-center relative overflow-hidden">

@@ -1,13 +1,42 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useEffect, useState, useId } from "react";
 import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { faq } from "@/data/faq";
+import { FaqItem } from "@/lib/types";
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const instanceId = useId();
+  const [faq, setFaq] = useState<FaqItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    fetch("/api/public/faq").then((response) => response.ok ? response.json() : Promise.reject(new Error("Unable to load FAQs.")))
+      .then((data) => {
+        if (isCurrent) {
+          setFaq(data);
+          setError(null);
+        }
+      })
+      .catch((fetchError: unknown) => {
+        if (isCurrent) {
+          setError(fetchError instanceof Error ? fetchError.message : "Unable to load FAQs.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   return (
     <section id="faq" className="py-24 sm:py-28 md:py-36">
@@ -25,8 +54,13 @@ export default function FAQ() {
           <h2 className="text-4xl sm:text-5xl">FAQ</h2>
         </motion.div>
 
-        <div>
-          {faq.map((item, i) => {
+        {isLoading ? (
+          <p className="py-12 text-center micro-label">Loading FAQs...</p>
+        ) : error ? (
+          <p className="py-12 text-center text-red-700">Unable to load FAQs: {error}</p>
+        ) : (
+          <div>
+            {faq.map((item, i) => {
             const isOpen = openIndex === i;
             const panelId = `${instanceId}-faq-panel-${i}`;
             const triggerId = `${instanceId}-faq-trigger-${i}`;
@@ -72,8 +106,9 @@ export default function FAQ() {
                 </AnimatePresence>
               </div>
             );
-          })}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

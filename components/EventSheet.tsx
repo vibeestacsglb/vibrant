@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FestEvent } from "@/lib/types";
-import { getRegistrationUrl } from "@/config/siteConfig";
 
 const COMING_SOON = "Coming Soon";
 
@@ -29,7 +28,9 @@ export default function EventSheet({
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
-  const registrationUrl = getRegistrationUrl();
+  const [registrationUrl, setRegistrationUrl] = useState("");
+
+  useEffect(() => { fetch("/api/public/settings").then((r) => r.ok ? r.json() : null).then((d) => setRegistrationUrl(d?.registrationUrl || "")).catch(() => undefined); }, []);
 
   useEffect(() => {
     if (!event) return;

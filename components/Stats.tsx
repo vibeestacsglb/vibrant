@@ -1,19 +1,44 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { events } from "@/data/events";
 import { siteConfig } from "@/config/siteConfig";
 
 export default function Stats() {
+  const [eventCount, setEventCount] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    fetch("/api/public/events").then((response) => response.ok ? response.json() : Promise.reject(new Error("Unable to load events.")))
+      .then((events) => {
+        if (isCurrent) {
+          setEventCount(events.length);
+          setError(null);
+        }
+      })
+      .catch((fetchError: unknown) => {
+        if (isCurrent) {
+          setError(fetchError instanceof Error ? fetchError.message : "Unable to load event count.");
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
   const stats = [
     { value: "02", label: "Days" },
-    { value: String(events.length), label: "Events" },
+    { value: eventCount === null ? "..." : String(eventCount), label: "Events" },
     { value: siteConfig.prizePool, label: "Prize Pool" },
   ];
 
   return (
     <section className="py-14 md:py-20 border-b border-ink-700/10">
       <div className="container-content">
+        {error && <p className="mb-4 text-center text-sm text-red-700">Unable to load event count: {error}</p>}
         {/* Equal-width 3-column grid to ensure exact symmetry and alignment */}
         <div className="grid grid-cols-3 divide-x divide-ink-700/15 max-w-4xl mx-auto">
           {stats.map((s, i) => {

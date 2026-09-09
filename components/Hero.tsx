@@ -1,12 +1,14 @@
 "use client";
 
 import { ArrowRight, Ticket } from "lucide-react";
+import { useEffect, useState } from "react";
 import Atmosphere from "@/components/Atmosphere";
 import OrbitRing from "@/components/OrbitRing";
-import { siteConfig, getRegistrationUrl } from "@/config/siteConfig";
+import { siteConfig } from "@/config/siteConfig"
 
 export default function Hero() {
-  const registrationUrl = getRegistrationUrl();
+  const [registrationUrl, setRegistrationUrl] = useState("");
+  useEffect(() => { fetch("/api/public/settings").then((r) => r.ok ? r.json() : null).then((d) => setRegistrationUrl(d?.registrationUrl || "")).catch(() => undefined); }, []);
 
   return (
     <header

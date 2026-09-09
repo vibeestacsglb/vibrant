@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { siteConfig } from "@/config/siteConfig";
+import { usePathname } from "next/navigation";
 
 const LINKS = [
   { label: "Home", href: "/#hero" },
@@ -14,6 +17,10 @@ const LINKS = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
+
+  if(isAdminRoute) return null;
   return (
     <footer className="border-t border-ink-700/20 py-14 md:py-20">
       <div className="container-content">
