@@ -12,6 +12,21 @@ import {
 import { useMemo, useState } from "react";
 import { deleteUser } from "@/app/(admin)/admin/(protected)/users/actions";
 
+function formatDateIST(value: string | null | undefined) {
+  if (!value) return "Never";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(new Date(value));
+}
+
 type UserItem = {
   id: string;
   name: string;
@@ -204,9 +219,7 @@ export default function UsersTable({ users, role }: Props) {
                       <td className="px-6 py-4 text-ink-400 text-xs">
                         <div className="flex items-center gap-1.5">
                           <CalendarIcon className="w-3.5 h-3.5" />
-                          {user.lastLoginAt
-                            ? new Date(user.lastLoginAt).toLocaleString()
-                            : "Never"}
+                          {formatDateIST(user.lastLoginAt)}
                         </div>
                       </td>
 
