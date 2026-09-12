@@ -21,18 +21,36 @@ import {
 
 import { enforceRateLimit } from "@/lib/rateLimit";
 
-export async function getUsers() {
+export async function getUsers(search?: string) {
   await requirePermission("users.view");
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("admin_users")
     .select(
       "id,name,email,status,scope,last_login_at,created_at,role:role_id(id,name,code)"
     )
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+    .is("deleted_at", null);
+
+  const normalizedSearch = search?.trim();
+
+  if (normalizedSearch) {
+    const safeSearch = normalizedSearch
+      .replace(/[(),]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (safeSearch) {
+      query = query.or(
+        `name.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%,scope.ilike.%${safeSearch}%,status.ilike.%${safeSearch}%`
+      );
+    }
+  }
+
+  const { data, error } = await query.order("created_at", {
+    ascending: false,
+  });
 
   if (error) {
     throw new Error(error.message);
