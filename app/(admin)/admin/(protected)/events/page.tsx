@@ -1,6 +1,6 @@
-import { Plus, Search, Filter, Edit2, Trash2, ArrowLeft, CheckCircle, Calendar as CalendarIcon, MapPin, Users } from "lucide-react"
+import { Plus, ArrowLeft, CheckCircle} from "lucide-react"
 import Link from "next/link"
-import { getEvents, deleteEvent } from "./actions"
+import { getEvents} from "./actions"
 import { requirePermission } from "@/lib/auth/authorize";
 import EventsTable from "@/components/admin/EventsTable";
 
